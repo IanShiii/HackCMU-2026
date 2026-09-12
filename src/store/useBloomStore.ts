@@ -3,23 +3,26 @@ import { create } from 'zustand';
 export const flowerShapes = ['Daisy', 'Tulip', 'Rose', 'Sunflower', 'Lily'] as const;
 export const flowerColors = ['#f59e0b', '#ef4444', '#f472b6', '#22c55e', '#38bdf8', '#a78bfa', '#f97316', '#eab308'];
 
-type FlowerShape = (typeof flowerShapes)[number];
+export type FlowerShape = (typeof flowerShapes)[number];
 
-type HistoryFlower = {
+export type HistoryFlower = {
   id: string;
   dayLabel: string;
+  dateLabel: string;
   mood: 'positive' | 'negative' | 'neutral';
   entry: string;
   trimmed: boolean;
+  shape: FlowerShape;
+  color: string;
 };
 
-type FriendFlower = {
+export type FriendFlower = {
   id: string;
   shape: FlowerShape;
   color: string;
 };
 
-type FriendPot = {
+export type FriendPot = {
   id: string;
   name: string;
   flowers: FriendFlower[];
@@ -38,6 +41,8 @@ type BloomState = {
   setSelectedColor: (color: string) => void;
   setJournalEntry: (entry: string) => void;
   paintPotPixel: (x: number, y: number, colorIndex: number) => void;
+  erasePotPixel: (x: number, y: number) => void;
+  clearPotGrid: () => void;
 };
 
 const emptyGrid = (size = 20) =>
@@ -56,20 +61,146 @@ const patternedPot = (seed: number) => {
 };
 
 const mockHistory: HistoryFlower[] = [
-  { id: 'd1', dayLabel: 'Mon', mood: 'positive', entry: 'Took a sunny walk with cocoa in hand.', trimmed: true },
-  { id: 'd2', dayLabel: 'Tue', mood: 'negative', entry: 'Felt overwhelmed by classes and forgot lunch.', trimmed: false },
-  { id: 'd3', dayLabel: 'Wed', mood: 'neutral', entry: 'A quiet study day with lo-fi music.', trimmed: true },
-  { id: 'd4', dayLabel: 'Thu', mood: 'positive', entry: 'Had a lovely call with family tonight.', trimmed: true },
-  { id: 'd5', dayLabel: 'Fri', mood: 'negative', entry: 'Rainy mood, I canceled plans and stayed in.', trimmed: false },
-  { id: 'd6', dayLabel: 'Sat', mood: 'positive', entry: 'Built pixel art scenes for fun.', trimmed: true },
-  { id: 'd7', dayLabel: 'Sun', mood: 'neutral', entry: 'Reset day with chores and tea.', trimmed: true },
-  { id: 'd8', dayLabel: 'Mon', mood: 'positive', entry: 'A teammate complimented my design sketch!', trimmed: true },
-  { id: 'd9', dayLabel: 'Tue', mood: 'negative', entry: 'Had self-doubt after a long debugging session.', trimmed: false },
-  { id: 'd10', dayLabel: 'Wed', mood: 'positive', entry: 'Nailed a coding interview practice problem.', trimmed: true },
-  { id: 'd11', dayLabel: 'Thu', mood: 'neutral', entry: 'Steady progress, no major highs or lows.', trimmed: true },
-  { id: 'd12', dayLabel: 'Fri', mood: 'positive', entry: 'A cozy movie night with friends.', trimmed: true },
-  { id: 'd13', dayLabel: 'Sat', mood: 'negative', entry: 'Missed a deadline and felt discouraged.', trimmed: false },
-  { id: 'd14', dayLabel: 'Sun', mood: 'positive', entry: 'Finished my week by journaling under fairy lights.', trimmed: true },
+  {
+    id: 'd1',
+    dayLabel: 'Mon',
+    dateLabel: 'Sep 1',
+    mood: 'positive',
+    entry: 'Took a sunny walk with cocoa in hand.',
+    trimmed: true,
+    shape: 'Daisy',
+    color: '#f59e0b',
+  },
+  {
+    id: 'd2',
+    dayLabel: 'Tue',
+    dateLabel: 'Sep 2',
+    mood: 'negative',
+    entry: 'Felt overwhelmed by classes and forgot lunch.',
+    trimmed: false,
+    shape: 'Rose',
+    color: '#ef4444',
+  },
+  {
+    id: 'd3',
+    dayLabel: 'Wed',
+    dateLabel: 'Sep 3',
+    mood: 'neutral',
+    entry: 'A quiet study day with lo-fi music.',
+    trimmed: true,
+    shape: 'Tulip',
+    color: '#f472b6',
+  },
+  {
+    id: 'd4',
+    dayLabel: 'Thu',
+    dateLabel: 'Sep 4',
+    mood: 'positive',
+    entry: 'Had a lovely call with family tonight.',
+    trimmed: true,
+    shape: 'Sunflower',
+    color: '#eab308',
+  },
+  {
+    id: 'd5',
+    dayLabel: 'Fri',
+    dateLabel: 'Sep 5',
+    mood: 'negative',
+    entry: 'Rainy mood, I canceled plans and stayed in.',
+    trimmed: false,
+    shape: 'Lily',
+    color: '#a78bfa',
+  },
+  {
+    id: 'd6',
+    dayLabel: 'Sat',
+    dateLabel: 'Sep 6',
+    mood: 'positive',
+    entry: 'Built pixel art scenes for fun.',
+    trimmed: true,
+    shape: 'Tulip',
+    color: '#38bdf8',
+  },
+  {
+    id: 'd7',
+    dayLabel: 'Sun',
+    dateLabel: 'Sep 7',
+    mood: 'neutral',
+    entry: 'Reset day with chores and tea.',
+    trimmed: true,
+    shape: 'Daisy',
+    color: '#22c55e',
+  },
+  {
+    id: 'd8',
+    dayLabel: 'Mon',
+    dateLabel: 'Sep 8',
+    mood: 'positive',
+    entry: 'A teammate complimented my design sketch!',
+    trimmed: true,
+    shape: 'Sunflower',
+    color: '#f59e0b',
+  },
+  {
+    id: 'd9',
+    dayLabel: 'Tue',
+    dateLabel: 'Sep 9',
+    mood: 'negative',
+    entry: 'Had self-doubt after a long debugging session.',
+    trimmed: false,
+    shape: 'Rose',
+    color: '#f97316',
+  },
+  {
+    id: 'd10',
+    dayLabel: 'Wed',
+    dateLabel: 'Sep 10',
+    mood: 'positive',
+    entry: 'Nailed a coding interview practice problem.',
+    trimmed: true,
+    shape: 'Tulip',
+    color: '#f472b6',
+  },
+  {
+    id: 'd11',
+    dayLabel: 'Thu',
+    dateLabel: 'Sep 11',
+    mood: 'neutral',
+    entry: 'Steady progress, no major highs or lows.',
+    trimmed: true,
+    shape: 'Lily',
+    color: '#38bdf8',
+  },
+  {
+    id: 'd12',
+    dayLabel: 'Fri',
+    dateLabel: 'Sep 12',
+    mood: 'positive',
+    entry: 'A cozy movie night with friends.',
+    trimmed: true,
+    shape: 'Daisy',
+    color: '#22c55e',
+  },
+  {
+    id: 'd13',
+    dayLabel: 'Sat',
+    dateLabel: 'Sep 13',
+    mood: 'negative',
+    entry: 'Missed a deadline and felt discouraged.',
+    trimmed: false,
+    shape: 'Rose',
+    color: '#ef4444',
+  },
+  {
+    id: 'd14',
+    dayLabel: 'Sun',
+    dateLabel: 'Sep 14',
+    mood: 'positive',
+    entry: 'Finished my week by journaling under fairy lights.',
+    trimmed: true,
+    shape: 'Sunflower',
+    color: '#eab308',
+  },
 ];
 
 const mockFriends: FriendPot[] = [
@@ -127,4 +258,11 @@ export const useBloomStore = create<BloomState>((set) => ({
         rowIndex === y ? row.map((pixel, columnIndex) => (columnIndex === x ? colorIndex : pixel)) : row,
       ),
     })),
+  erasePotPixel: (x, y) =>
+    set((state) => ({
+      potGrid: state.potGrid.map((row, rowIndex) =>
+        rowIndex === y ? row.map((pixel, columnIndex) => (columnIndex === x ? 0 : pixel)) : row,
+      ),
+    })),
+  clearPotGrid: () => set({ potGrid: emptyGrid() }),
 }));
